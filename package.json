@@ -1,0 +1,47 @@
+{
+  "name": "@localvibe/source",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LocalVibe - Location-Based Marketing Platform for India",
+  "license": "MIT",
+  "scripts": {
+    "build": "nx run-many --target=build",
+    "test": "nx run-many --target=test",
+    "lint": "nx run-many --target=lint",
+    "dev:web": "nx serve web",
+    "dev:admin": "nx serve admin",
+    "dev:mobile": "nx start mobile",
+    "dev:user-service": "nx serve user-service",
+    "dev:business-service": "nx serve business-service",
+    "dev:gateway": "nx serve gateway",
+    "dev:all-services": "nx run-many --target=serve --projects=user-service,business-service,gateway",
+    "graph": "nx graph",
+    "affected": "nx affected",
+    "affected:build": "nx affected --target=build",
+    "affected:test": "nx affected --target=test",
+    "affected:lint": "nx affected --target=lint"
+  },
+  "workspaces": [
+    "apps/*",
+    "libs/*"
+  ],
+  "devDependencies": {
+    "nx": "^20.3.0",
+    "@nx/js": "^20.3.0",
+    "@nx/node": "^20.3.0",
+    "@nx/react": "^20.3.0",
+    "@nx/web": "^20.3.0",
+    "@nx/vite": "^20.3.0",
+    "@nx/eslint": "^20.3.0",
+    "@nx/eslint-plugin": "^20.3.0",
+    "@nx/workspace": "^20.3.0",
+    "typescript": "^5.6.3",
+    "eslint": "^9.15.0",
+    "@eslint/js": "^9.15.0",
+    "prettier": "^3.4.1"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

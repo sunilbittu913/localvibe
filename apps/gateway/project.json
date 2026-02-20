@@ -1,0 +1,30 @@
+{
+  "name": "gateway",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/gateway/src",
+  "projectType": "application",
+  "tags": ["scope:backend", "type:service"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/gateway",
+        "tsConfig": "apps/gateway/tsconfig.app.json",
+        "main": "apps/gateway/src/server.ts"
+      }
+    },
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx tsx watch apps/gateway/src/server.ts"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["apps/gateway/**/*.ts"]
+      }
+    }
+  }
+}

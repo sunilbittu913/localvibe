@@ -1,0 +1,24 @@
+{
+  "name": "ui-components",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/ui-components/src",
+  "projectType": "library",
+  "tags": ["scope:frontend", "type:ui"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/ui-components",
+        "tsConfig": "libs/ui-components/tsconfig.lib.json",
+        "main": "libs/ui-components/src/index.ts"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["libs/ui-components/**/*.{ts,tsx}"]
+      }
+    }
+  }
+}

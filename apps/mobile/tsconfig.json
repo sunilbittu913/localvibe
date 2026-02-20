@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "strict": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "App.tsx"],
+  "exclude": ["node_modules"],
+  "references": [
+    { "path": "../../libs/shared-types" },
+    { "path": "../../libs/shared-utils" },
+    { "path": "../../libs/ui-components" }
+  ]
+}
