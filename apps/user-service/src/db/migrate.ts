@@ -1,5 +1,5 @@
-import { migrate } from "drizzle-orm/mysql2/migrator";
-import { db, poolConnection } from "../config/database";
+import { migrate } from "drizzle-orm/postgres-js/migrator";
+import { db, queryClient } from "../config/database";
 
 /**
  * Database Migration Script
@@ -17,7 +17,7 @@ async function runMigrations(): Promise<void> {
     console.error("❌ Migration failed:", error);
     process.exit(1);
   } finally {
-    await poolConnection.end();
+    await queryClient.end();
     process.exit(0);
   }
 }

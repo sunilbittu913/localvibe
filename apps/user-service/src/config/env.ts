@@ -17,10 +17,11 @@ export const env = {
   PORT: parseInt(process.env.PORT || "3000", 10),
   API_PREFIX: process.env.API_PREFIX || "/api",
 
-  // Database
+  // Database (PostgreSQL)
+  DATABASE_URL: process.env.DATABASE_URL || "",
   DB_HOST: process.env.DB_HOST || "localhost",
-  DB_PORT: parseInt(process.env.DB_PORT || "3306", 10),
-  DB_USER: process.env.DB_USER || "root",
+  DB_PORT: parseInt(process.env.DB_PORT || "5432", 10),
+  DB_USER: process.env.DB_USER || "postgres",
   DB_PASSWORD: process.env.DB_PASSWORD || "",
   DB_NAME: process.env.DB_NAME || "localvibe",
 

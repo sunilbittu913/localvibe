@@ -76,27 +76,21 @@ export class CategoryController {
         throw AppError.conflict(`A category with the name "${name}" already exists.`);
       }
 
-      // Insert the new category
-      const [result] = await db.insert(categories).values({
+      // Insert the new category and return the created row
+      const [newCategory] = await db.insert(categories).values({
         name: name.trim(),
         slug,
         description: description || null,
         icon: icon || null,
         sortOrder: sortOrder || 0,
-      });
-
-      // Fetch the newly created category
-      const newCategory = await db.query.categories.findFirst({
-        where: eq(categories.id, result.insertId),
-        columns: {
-          id: true,
-          name: true,
-          slug: true,
-          description: true,
-          icon: true,
-          sortOrder: true,
-          createdAt: true,
-        },
+      }).returning({
+        id: categories.id,
+        name: categories.name,
+        slug: categories.slug,
+        description: categories.description,
+        icon: categories.icon,
+        sortOrder: categories.sortOrder,
+        createdAt: categories.createdAt,
       });
 
       sendSuccess(res, 201, "Category created successfully.", { category: newCategory });

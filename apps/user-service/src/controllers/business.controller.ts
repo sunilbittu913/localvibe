@@ -239,8 +239,8 @@ export class BusinessController {
       const slug = generateUniqueSlug(body.name);
       const businessUuid = uuidv4();
 
-      // Insert the new business
-      const [result] = await db.insert(businesses).values({
+      // Insert the new business and return the created row
+      const [insertedBusiness] = await db.insert(businesses).values({
         uuid: businessUuid,
         ownerId: req.user.userId,
         categoryId: body.categoryId,
@@ -261,11 +261,11 @@ export class BusinessController {
         openingTime: body.openingTime || null,
         closingTime: body.closingTime || null,
         workingDays: body.workingDays || null,
-      });
+      }).returning();
 
       // Fetch the newly created business with relations
       const newBusiness = await db.query.businesses.findFirst({
-        where: eq(businesses.id, result.insertId),
+        where: eq(businesses.id, insertedBusiness.id),
         with: {
           category: {
             columns: { id: true, name: true, slug: true },

@@ -1,32 +1,29 @@
-import { drizzle } from "drizzle-orm/mysql2";
-import mysql from "mysql2/promise";
-import { env } from "./env";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import * as schema from "../db/schema";
+import { env } from "./env";
 
 /**
- * MySQL connection pool configuration.
- * Uses mysql2/promise for async operations with connection pooling.
+ * PostgreSQL connection using postgres.js driver.
+ * Uses a connection string built from environment variables,
+ * or falls back to DATABASE_URL if provided.
  */
-const poolConnection = mysql.createPool({
-  host: env.DB_HOST,
-  port: env.DB_PORT,
-  user: env.DB_USER,
-  password: env.DB_PASSWORD,
-  database: env.DB_NAME,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  enableKeepAlive: true,
-  keepAliveInitialDelay: 0,
+const connectionString =
+  process.env.DATABASE_URL ||
+  `postgres://${env.DB_USER}:${env.DB_PASSWORD}@${env.DB_HOST}:${env.DB_PORT}/${env.DB_NAME}`;
+
+const queryClient = postgres(connectionString, {
+  max: 10,
+  idle_timeout: 20,
+  connect_timeout: 10,
 });
 
 /**
- * Drizzle ORM instance configured with MySQL pool and schema.
+ * Drizzle ORM instance configured with PostgreSQL and schema.
  * This is the primary database interface used throughout the application.
  */
-export const db = drizzle(poolConnection, {
+export const db = drizzle(queryClient, {
   schema,
-  mode: "default",
 });
 
 /**
@@ -35,13 +32,20 @@ export const db = drizzle(poolConnection, {
  */
 export async function testDatabaseConnection(): Promise<void> {
   try {
-    const connection = await poolConnection.getConnection();
+    await queryClient`SELECT 1`;
     console.log("✅ Database connection established successfully");
-    connection.release();
   } catch (error) {
     console.error("❌ Failed to connect to database:", error);
     throw error;
   }
 }
 
-export { poolConnection };
+/**
+ * Close the database connection pool.
+ * Should be called during graceful shutdown.
+ */
+export async function closeDatabaseConnection(): Promise<void> {
+  await queryClient.end();
+}
+
+export { queryClient };

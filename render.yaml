@@ -1,0 +1,148 @@
+# ============================================
+# LocalVibe - Render Blueprint (Infrastructure as Code)
+# ============================================
+# This file defines all services, databases, and caches
+# needed to deploy the LocalVibe platform on Render.
+#
+# Usage:
+#   1. Push this file to the root of your GitHub repo.
+#   2. Go to https://dashboard.render.com/blueprints
+#   3. Click "New Blueprint Instance" and connect your repo.
+#   4. Render will automatically provision all resources below.
+# ============================================
+
+services:
+  # ============================================
+  # API Gateway
+  # ============================================
+  - type: web
+    name: localvibe-gateway
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && cd apps/gateway && npm install
+    startCommand: cd apps/gateway && npx tsx src/server.ts
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GATEWAY_PORT
+        value: "10000"
+      - key: PORT
+        value: "10000"
+      - key: CORS_ORIGIN
+        value: https://localvibe-web.onrender.com,https://localvibe-admin.onrender.com
+      - key: USER_SERVICE_URL
+        fromService:
+          name: localvibe-user-service
+          type: web
+          property: hostport
+      - key: BUSINESS_SERVICE_URL
+        fromService:
+          name: localvibe-business-service
+          type: web
+          property: hostport
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+
+  # ============================================
+  # User Service
+  # ============================================
+  - type: web
+    name: localvibe-user-service
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && cd apps/user-service && npm install
+    startCommand: cd apps/user-service && npx tsx src/server.ts
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"
+      - key: API_PREFIX
+        value: /api
+      - key: DATABASE_URL
+        fromDatabase:
+          name: localvibe-db
+          property: connectionString
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_EXPIRY
+        value: 15m
+      - key: JWT_REFRESH_EXPIRY
+        value: 7d
+      - key: CORS_ORIGIN
+        value: https://localvibe-gateway.onrender.com,https://localvibe-web.onrender.com
+      - key: RATE_LIMIT_WINDOW_MS
+        value: "900000"
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: "100"
+      - key: LOG_LEVEL
+        value: info
+      - key: REDIS_URL
+        fromService:
+          name: localvibe-redis
+          type: redis
+          property: connectionString
+
+  # ============================================
+  # Business Service
+  # ============================================
+  - type: web
+    name: localvibe-business-service
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && cd apps/business-service && npm install
+    startCommand: cd apps/business-service && npx tsx src/server.ts
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: BUSINESS_SERVICE_PORT
+        value: "10000"
+      - key: PORT
+        value: "10000"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: localvibe-db
+          property: connectionString
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: https://localvibe-gateway.onrender.com,https://localvibe-web.onrender.com
+      - key: REDIS_URL
+        fromService:
+          name: localvibe-redis
+          type: redis
+          property: connectionString
+
+# ============================================
+# Databases
+# ============================================
+databases:
+  - name: localvibe-db
+    plan: free
+    region: oregon
+    databaseName: localvibe
+    user: localvibe_user
+    postgresMajorVersion: "16"
+
+# ============================================
+# Redis (Render Managed)
+# ============================================
+  # Note: Render managed Redis is available on paid plans.
+  # For the free tier, you can use an external Redis provider
+  # (e.g., Upstash, Redis Cloud) and set REDIS_URL manually.
+  # Uncomment the block below if you are on a paid Render plan:
+  #
+  # - type: redis
+  #   name: localvibe-redis
+  #   plan: free
+  #   region: oregon
+  #   maxmemoryPolicy: allkeys-lru
+  #   ipAllowList: []

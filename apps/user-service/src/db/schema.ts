@@ -1,16 +1,71 @@
 import {
-  mysqlTable,
+  pgTable,
+  pgEnum,
   varchar,
   text,
-  int,
+  integer,
+  serial,
   boolean,
   timestamp,
-  mysqlEnum,
   decimal,
   index,
   uniqueIndex,
-} from "drizzle-orm/mysql-core";
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+
+// ============================================
+// ENUMS
+// ============================================
+
+/**
+ * PostgreSQL enum for user roles.
+ */
+export const userRoleEnum = pgEnum("user_role", [
+  "normal_user",
+  "business_user",
+  "admin",
+]);
+
+/**
+ * PostgreSQL enum for job types.
+ */
+export const jobTypeEnum = pgEnum("job_type", [
+  "full_time",
+  "part_time",
+  "contract",
+  "internship",
+  "freelance",
+]);
+
+/**
+ * PostgreSQL enum for experience levels.
+ */
+export const experienceLevelEnum = pgEnum("experience_level", [
+  "fresher",
+  "junior",
+  "mid",
+  "senior",
+  "lead",
+]);
+
+/**
+ * PostgreSQL enum for message types.
+ */
+export const messageTypeEnum = pgEnum("message_type", [
+  "text",
+  "image",
+  "file",
+]);
+
+/**
+ * PostgreSQL enum for discount types.
+ */
+export const discountTypeEnum = pgEnum("discount_type", [
+  "percentage",
+  "flat",
+  "bogo",
+  "freebie",
+]);
 
 // ============================================
 // USERS TABLE
@@ -20,10 +75,10 @@ import { relations } from "drizzle-orm";
  * Users table - stores all registered users of the platform.
  * Supports three roles: normal_user, business_user, and admin.
  */
-export const users = mysqlTable(
+export const users = pgTable(
   "users",
   {
-    id: int("id").primaryKey().autoincrement(),
+    id: serial("id").primaryKey(),
     uuid: varchar("uuid", { length: 36 }).notNull().unique(),
     email: varchar("email", { length: 255 }).notNull().unique(),
     phone: varchar("phone", { length: 20 }),
@@ -31,16 +86,14 @@ export const users = mysqlTable(
     firstName: varchar("first_name", { length: 100 }).notNull(),
     lastName: varchar("last_name", { length: 100 }),
     avatar: varchar("avatar", { length: 500 }),
-    role: mysqlEnum("role", ["normal_user", "business_user", "admin"])
-      .notNull()
-      .default("normal_user"),
+    role: userRoleEnum("role").notNull().default("normal_user"),
     isActive: boolean("is_active").notNull().default(true),
     isEmailVerified: boolean("is_email_verified").notNull().default(false),
     isPhoneVerified: boolean("is_phone_verified").notNull().default(false),
     lastLoginAt: timestamp("last_login_at"),
     refreshToken: text("refresh_token"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (table) => ({
     emailIdx: uniqueIndex("email_idx").on(table.email),
@@ -58,18 +111,18 @@ export const users = mysqlTable(
  * Categories table - stores top-level business categories.
  * Examples: Restaurants, Healthcare, Education, etc.
  */
-export const categories = mysqlTable(
+export const categories = pgTable(
   "categories",
   {
-    id: int("id").primaryKey().autoincrement(),
+    id: serial("id").primaryKey(),
     name: varchar("name", { length: 100 }).notNull().unique(),
     slug: varchar("slug", { length: 120 }).notNull().unique(),
     description: text("description"),
     icon: varchar("icon", { length: 255 }),
     isActive: boolean("is_active").notNull().default(true),
-    sortOrder: int("sort_order").notNull().default(0),
+    sortOrder: integer("sort_order").notNull().default(0),
     createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (table) => ({
     slugIdx: uniqueIndex("slug_idx").on(table.slug),
@@ -85,19 +138,19 @@ export const categories = mysqlTable(
  * Subcategories table - stores subcategories under each main category.
  * Examples: Under "Restaurants" -> "North Indian", "South Indian", "Chinese", etc.
  */
-export const subcategories = mysqlTable(
+export const subcategories = pgTable(
   "subcategories",
   {
-    id: int("id").primaryKey().autoincrement(),
-    categoryId: int("category_id").notNull(),
+    id: serial("id").primaryKey(),
+    categoryId: integer("category_id").notNull(),
     name: varchar("name", { length: 100 }).notNull(),
     slug: varchar("slug", { length: 120 }).notNull(),
     description: text("description"),
     icon: varchar("icon", { length: 255 }),
     isActive: boolean("is_active").notNull().default(true),
-    sortOrder: int("sort_order").notNull().default(0),
+    sortOrder: integer("sort_order").notNull().default(0),
     createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (table) => ({
     categoryIdx: index("category_idx").on(table.categoryId),
@@ -113,14 +166,14 @@ export const subcategories = mysqlTable(
  * Businesses table - stores business profiles created by business users.
  * Contains all business information including location data for geo-queries.
  */
-export const businesses = mysqlTable(
+export const businesses = pgTable(
   "businesses",
   {
-    id: int("id").primaryKey().autoincrement(),
+    id: serial("id").primaryKey(),
     uuid: varchar("uuid", { length: 36 }).notNull().unique(),
-    ownerId: int("owner_id").notNull(),
-    categoryId: int("category_id").notNull(),
-    subcategoryId: int("subcategory_id"),
+    ownerId: integer("owner_id").notNull(),
+    categoryId: integer("category_id").notNull(),
+    subcategoryId: integer("subcategory_id"),
     name: varchar("name", { length: 200 }).notNull(),
     slug: varchar("slug", { length: 220 }).notNull().unique(),
     description: text("description"),
@@ -151,10 +204,10 @@ export const businesses = mysqlTable(
     isActive: boolean("is_active").notNull().default(true),
     isVerified: boolean("is_verified").notNull().default(false),
     averageRating: decimal("average_rating", { precision: 3, scale: 2 }).default("0.00"),
-    totalReviews: int("total_reviews").notNull().default(0),
+    totalReviews: integer("total_reviews").notNull().default(0),
 
     createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (table) => ({
     ownerIdx: index("owner_idx").on(table.ownerId),
@@ -177,18 +230,18 @@ export const businesses = mysqlTable(
  * Reviews table - stores user reviews and ratings for businesses.
  * Each user can leave one review per business.
  */
-export const reviews = mysqlTable(
+export const reviews = pgTable(
   "reviews",
   {
-    id: int("id").primaryKey().autoincrement(),
-    userId: int("user_id").notNull(),
-    businessId: int("business_id").notNull(),
-    rating: int("rating").notNull(), // 1-5 stars
+    id: serial("id").primaryKey(),
+    userId: integer("user_id").notNull(),
+    businessId: integer("business_id").notNull(),
+    rating: integer("rating").notNull(), // 1-5 stars
     title: varchar("title", { length: 200 }),
     comment: text("comment"),
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (table) => ({
     userIdx: index("review_user_idx").on(table.userId),
@@ -205,19 +258,16 @@ export const reviews = mysqlTable(
  * Jobs table - stores job postings created by business users.
  * Supports various job types and salary ranges relevant to the Indian market.
  */
-export const jobs = mysqlTable(
+export const jobs = pgTable(
   "jobs",
   {
-    id: int("id").primaryKey().autoincrement(),
+    id: serial("id").primaryKey(),
     uuid: varchar("uuid", { length: 36 }).notNull().unique(),
-    businessId: int("business_id").notNull(),
+    businessId: integer("business_id").notNull(),
     title: varchar("title", { length: 200 }).notNull(),
     description: text("description").notNull(),
-    jobType: mysqlEnum("job_type", ["full_time", "part_time", "contract", "internship", "freelance"])
-      .notNull()
-      .default("full_time"),
-    experienceLevel: mysqlEnum("experience_level", ["fresher", "junior", "mid", "senior", "lead"])
-      .default("fresher"),
+    jobType: jobTypeEnum("job_type").notNull().default("full_time"),
+    experienceLevel: experienceLevelEnum("experience_level").default("fresher"),
     salaryMin: decimal("salary_min", { precision: 12, scale: 2 }),
     salaryMax: decimal("salary_max", { precision: 12, scale: 2 }),
     salaryCurrency: varchar("salary_currency", { length: 3 }).default("INR"),
@@ -227,7 +277,7 @@ export const jobs = mysqlTable(
     isActive: boolean("is_active").notNull().default(true),
     expiresAt: timestamp("expires_at"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (table) => ({
     businessIdx: index("job_business_idx").on(table.businessId),
@@ -245,19 +295,17 @@ export const jobs = mysqlTable(
  * Messages table - stores chat messages between users and businesses.
  * Supports a conversation thread model with read receipts.
  */
-export const messages = mysqlTable(
+export const messages = pgTable(
   "messages",
   {
-    id: int("id").primaryKey().autoincrement(),
+    id: serial("id").primaryKey(),
     uuid: varchar("uuid", { length: 36 }).notNull().unique(),
     conversationId: varchar("conversation_id", { length: 36 }).notNull(),
-    senderId: int("sender_id").notNull(),
-    receiverId: int("receiver_id").notNull(),
-    businessId: int("business_id"),
+    senderId: integer("sender_id").notNull(),
+    receiverId: integer("receiver_id").notNull(),
+    businessId: integer("business_id"),
     content: text("content").notNull(),
-    messageType: mysqlEnum("message_type", ["text", "image", "file"])
-      .notNull()
-      .default("text"),
+    messageType: messageTypeEnum("message_type").notNull().default("text"),
     isRead: boolean("is_read").notNull().default(false),
     readAt: timestamp("read_at"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -279,17 +327,15 @@ export const messages = mysqlTable(
  * Offers table - stores special offers and deals created by businesses.
  * Supports percentage and flat discount types with validity periods.
  */
-export const offers = mysqlTable(
+export const offers = pgTable(
   "offers",
   {
-    id: int("id").primaryKey().autoincrement(),
+    id: serial("id").primaryKey(),
     uuid: varchar("uuid", { length: 36 }).notNull().unique(),
-    businessId: int("business_id").notNull(),
+    businessId: integer("business_id").notNull(),
     title: varchar("title", { length: 200 }).notNull(),
     description: text("description"),
-    discountType: mysqlEnum("discount_type", ["percentage", "flat", "bogo", "freebie"])
-      .notNull()
-      .default("percentage"),
+    discountType: discountTypeEnum("discount_type").notNull().default("percentage"),
     discountValue: decimal("discount_value", { precision: 10, scale: 2 }),
     minOrderValue: decimal("min_order_value", { precision: 10, scale: 2 }),
     maxDiscount: decimal("max_discount", { precision: 10, scale: 2 }),
@@ -300,7 +346,7 @@ export const offers = mysqlTable(
     startsAt: timestamp("starts_at").notNull(),
     expiresAt: timestamp("expires_at").notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (table) => ({
     businessIdx: index("offer_business_idx").on(table.businessId),

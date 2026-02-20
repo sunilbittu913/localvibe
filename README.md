@@ -46,8 +46,8 @@ localvibe/
 | Service | Description | Port | Tech Stack |
 |---------|-------------|------|------------|
 | `gateway` | API Gateway (routing, rate limiting) | 3000 | Express + TypeScript |
-| `user-service` | User auth, registration, profiles | 3001 | Express + TypeScript + Drizzle ORM + MySQL |
-| `business-service` | Business profiles, stores, listings | 3002 | Express + TypeScript + Drizzle ORM + MySQL |
+| `user-service` | User auth, registration, profiles | 3001 | Express + TypeScript + Drizzle ORM + PostgreSQL |
+| `business-service` | Business profiles, stores, listings | 3002 | Express + TypeScript + Drizzle ORM + PostgreSQL |
 
 ### Shared Libraries
 
@@ -63,7 +63,8 @@ localvibe/
 
 - Node.js >= 18.0.0
 - npm >= 9.0.0
-- MySQL 8.0+
+- PostgreSQL 14+
+- Docker (optional, for local containerized development)
 
 ### Installation
 
@@ -74,6 +75,17 @@ cd localvibe
 
 # Install dependencies
 npm install
+```
+
+### Database Migrations
+
+Before starting the services, run the database migrations:
+
+```bash
+# From the root of the monorepo
+npm install
+cd apps/user-service
+npm run migrate
 ```
 
 ### Development
@@ -155,7 +167,8 @@ cp apps/gateway/.env.example apps/gateway/.env
 - **Node.js** with Express.js
 - **TypeScript** for type safety
 - **Drizzle ORM** for database queries
-- **MySQL** for data storage
+- **PostgreSQL** for data storage
+- **Redis** for caching and session management
 - **JWT** for authentication
 - **Zod** for validation
 
@@ -172,6 +185,31 @@ cp apps/gateway/.env.example apps/gateway/.env
 | Dark Gray | `#333333` | Text |
 | Light Gray | `#F2F2F2` | Backgrounds |
 | Accent Blue | `#007BFF` | CTAs and highlights |
+
+## Deployment with Render
+
+The project is configured for seamless deployment to [Render](https://render.com) using a Blueprint (Infrastructure as Code).
+
+### Prerequisites
+
+- A Render account.
+- This repository pushed to your GitHub account.
+
+### Steps
+
+1.  **Create a New Blueprint Instance**:
+    - Go to the [Render Blueprints dashboard](https://dashboard.render.com/blueprints).
+    - Click **New Blueprint Instance**.
+    - Select your repository (`sunilbittu913/localvibe` or your fork).
+    - Give the Blueprint a name (e.g., `localvibe-deployment`).
+
+2.  **Approve the Plan**:
+    - Render will automatically detect the `render.yaml` file and show you the services to be created (3 web services, 1 database).
+    - Click **Approve** to start the initial deployment.
+
+Render will provision the PostgreSQL database, Redis cache, and all backend services, automatically setting the required environment variables (`DATABASE_URL`, `REDIS_URL`, service URLs, etc.). The first deployment may take a few minutes.
+
+Once deployed, the API Gateway will be available at the URL provided by Render (e.g., `https://localvibe-gateway.onrender.com`).
 
 ## License
 

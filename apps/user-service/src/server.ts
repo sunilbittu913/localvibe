@@ -1,6 +1,6 @@
 import { createApp } from './app';
 import { env } from './config/env';
-import { testDatabaseConnection } from './config/database';
+import { testDatabaseConnection, closeDatabaseConnection } from './config/database';
 
 /**
  * LocalVibe User Service
@@ -56,13 +56,15 @@ process.on('uncaughtException', (error: Error) => {
 });
 
 // Graceful shutdown handling
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   console.log('🛑 SIGTERM received. Shutting down gracefully...');
+  await closeDatabaseConnection();
   process.exit(0);
 });
 
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('🛑 SIGINT received. Shutting down gracefully...');
+  await closeDatabaseConnection();
   process.exit(0);
 });
 

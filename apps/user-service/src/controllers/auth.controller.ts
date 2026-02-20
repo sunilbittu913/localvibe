@@ -56,8 +56,8 @@ export class AuthController {
     // Generate a unique UUID for the user
     const userUuid = uuidv4();
 
-    // Insert the new user into the database
-    const [result] = await db.insert(users).values({
+    // Insert the new user into the database and return the created row
+    const [newUser] = await db.insert(users).values({
       uuid: userUuid,
       email: email.toLowerCase().trim(),
       password: hashedPassword,
@@ -65,12 +65,7 @@ export class AuthController {
       lastName: lastName?.trim() || null,
       phone: phone || null,
       role: role || "normal_user",
-    });
-
-    // Fetch the newly created user
-    const newUser = await db.query.users.findFirst({
-      where: eq(users.id, result.insertId),
-    });
+    }).returning();
 
     if (!newUser) {
       throw AppError.internal("Failed to create user account.");

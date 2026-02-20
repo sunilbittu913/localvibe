@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { db, poolConnection } from "../config/database";
+import { db, queryClient } from "../config/database";
 import { users, categories, subcategories } from "./schema";
 import { PasswordService } from "../services/password.service";
 
@@ -114,7 +114,7 @@ async function seed(): Promise<void> {
   } catch (error) {
     console.error("❌ Seeding failed:", error);
   } finally {
-    await poolConnection.end();
+    await queryClient.end();
     process.exit(0);
   }
 }
