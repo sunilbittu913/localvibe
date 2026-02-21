@@ -1,18 +1,46 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import { store } from './store';
+import Layout from './components/layout/Layout';
+import LoadingSpinner from './components/common/LoadingSpinner';
+
+// Lazy load pages
+const HomePage = lazy(() => import('./pages/HomePage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const DiscoverPage = lazy(() => import('./pages/DiscoverPage'));
+const BusinessProfilePage = lazy(() => import('./pages/BusinessProfilePage'));
+const SearchResultsPage = lazy(() => import('./pages/SearchResultsPage'));
+const JobsPage = lazy(() => import('./pages/JobsPage'));
+const OffersPage = lazy(() => import('./pages/OffersPage'));
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+
+const PageLoader = () => <LoadingSpinner className="min-h-screen" size="lg" />;
 
 const App: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-primary-500 mb-4">LocalVibe</h1>
-        <p className="text-gray-600 text-lg">
-          Discover local businesses, services, and deals near you.
-        </p>
-        <p className="text-gray-400 mt-2 text-sm">
-          Main Web App — Micro Frontend Shell
-        </p>
-      </div>
-    </div>
+    <Provider store={store}>
+      <Router>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route element={<Layout />}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/discover" element={<DiscoverPage />} />
+              <Route path="/business/:id" element={<BusinessProfilePage />} />
+              <Route path="/search" element={<SearchResultsPage />} />
+              <Route path="/jobs" element={<JobsPage />} />
+              <Route path="/offers" element={<OffersPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+            </Route>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+          </Routes>
+        </Suspense>
+      </Router>
+    </Provider>
   );
 };
 

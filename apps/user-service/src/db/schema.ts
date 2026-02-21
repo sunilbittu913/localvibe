@@ -67,6 +67,16 @@ export const discountTypeEnum = pgEnum("discount_type", [
   "freebie",
 ]);
 
+/**
+ * PostgreSQL enum for post/listing approval status.
+ * Used by Super Admin to control visibility of content in the mobile app.
+ */
+export const postStatusEnum = pgEnum("post_status", [
+  "pending",
+  "approved",
+  "rejected",
+]);
+
 // ============================================
 // USERS TABLE
 // ============================================
@@ -203,6 +213,8 @@ export const businesses = pgTable(
     // Status and metrics
     isActive: boolean("is_active").notNull().default(true),
     isVerified: boolean("is_verified").notNull().default(false),
+    status: postStatusEnum("status").notNull().default("pending"),
+    rejectionReason: text("rejection_reason"),
     averageRating: decimal("average_rating", { precision: 3, scale: 2 }).default("0.00"),
     totalReviews: integer("total_reviews").notNull().default(0),
 
@@ -275,6 +287,8 @@ export const jobs = pgTable(
     isRemote: boolean("is_remote").notNull().default(false),
     skills: text("skills"), // JSON array of required skills
     isActive: boolean("is_active").notNull().default(true),
+    status: postStatusEnum("status").notNull().default("pending"),
+    rejectionReason: text("rejection_reason"),
     expiresAt: timestamp("expires_at"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -283,6 +297,7 @@ export const jobs = pgTable(
     businessIdx: index("job_business_idx").on(table.businessId),
     jobTypeIdx: index("job_type_idx").on(table.jobType),
     activeIdx: index("job_active_idx").on(table.isActive),
+    statusIdx: index("job_status_idx").on(table.status),
     locationIdx: index("job_location_idx").on(table.location),
   })
 );
@@ -343,6 +358,8 @@ export const offers = pgTable(
     termsAndConditions: text("terms_and_conditions"),
     image: varchar("image", { length: 500 }),
     isActive: boolean("is_active").notNull().default(true),
+    status: postStatusEnum("status").notNull().default("pending"),
+    rejectionReason: text("rejection_reason"),
     startsAt: timestamp("starts_at").notNull(),
     expiresAt: timestamp("expires_at").notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -351,6 +368,7 @@ export const offers = pgTable(
   (table) => ({
     businessIdx: index("offer_business_idx").on(table.businessId),
     activeIdx: index("offer_active_idx").on(table.isActive),
+    statusIdx: index("offer_status_idx").on(table.status),
     expiresIdx: index("offer_expires_idx").on(table.expiresAt),
     couponIdx: index("offer_coupon_idx").on(table.couponCode),
   })

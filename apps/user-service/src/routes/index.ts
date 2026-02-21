@@ -3,6 +3,8 @@ import authRoutes from "./auth.routes";
 import userRoutes from "./user.routes";
 import businessRoutes from "./business.routes";
 import categoryRoutes from "./category.routes";
+import adminRoutes from "./admin.routes";
+import approvedRoutes from "./approved.routes";
 
 /**
  * API Router
@@ -29,5 +31,7 @@ router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
 router.use("/businesses", businessRoutes);
 router.use("/categories", categoryRoutes);
+router.use("/admin", adminRoutes);
+router.use("/approved", approvedRoutes);
 
 export default router;

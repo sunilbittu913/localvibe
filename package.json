@@ -26,22 +26,26 @@
     "libs/*"
   ],
   "devDependencies": {
-    "nx": "^20.3.0",
+    "@eslint/js": "^9.15.0",
+    "@nx/eslint": "^20.3.0",
+    "@nx/eslint-plugin": "^20.3.0",
     "@nx/js": "^20.3.0",
     "@nx/node": "^20.3.0",
     "@nx/react": "^20.3.0",
-    "@nx/web": "^20.3.0",
     "@nx/vite": "^20.3.0",
-    "@nx/eslint": "^20.3.0",
-    "@nx/eslint-plugin": "^20.3.0",
+    "@nx/web": "^20.3.0",
     "@nx/workspace": "^20.3.0",
-    "typescript": "^5.6.3",
     "eslint": "^9.15.0",
-    "@eslint/js": "^9.15.0",
-    "prettier": "^3.4.1"
+    "nx": "^20.3.0",
+    "prettier": "^3.4.1",
+    "typescript": "^5.6.3"
   },
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
+  },
+  "dependencies": {
+    "lucide-react": "^0.575.0",
+    "react-hot-toast": "^2.6.0"
   }
 }
