@@ -121,6 +121,16 @@ services:
           type: redis
           property: connectionString
 
+  # ============================================
+  # Redis / Key Value Store
+  # ============================================
+  - type: keyvalue
+    name: localvibe-redis
+    region: oregon
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: [] # Only allow internal connections from other Render services
+
 # ============================================
 # Databases
 # ============================================
@@ -131,18 +141,3 @@ databases:
     databaseName: localvibe
     user: localvibe_user
     postgresMajorVersion: "16"
-
-# ============================================
-# Redis (Render Managed)
-# ============================================
-  # Note: Render managed Redis is available on paid plans.
-  # For the free tier, you can use an external Redis provider
-  # (e.g., Upstash, Redis Cloud) and set REDIS_URL manually.
-  # Uncomment the block below if you are on a paid Render plan:
-  #
-  # - type: redis
-  #   name: localvibe-redis
-  #   plan: free
-  #   region: oregon
-  #   maxmemoryPolicy: allkeys-lru
-  #   ipAllowList: []
